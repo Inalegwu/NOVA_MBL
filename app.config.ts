@@ -5,7 +5,7 @@ import pkg from './package.json';
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: pkg.name,
-  slug: 'spawnpoint',
+  slug: 'nova',
   version: pkg.version,
   scheme: `com.${pkg.name.toLowerCase()}`,
   userInterfaceStyle: 'light',
@@ -27,5 +27,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   experiments: {
     typedRoutes: true,
   },
-  plugins: ['expo-font', 'expo-router'],
+  plugins: [
+    'expo-font',
+    'expo-router',
+    'expo-status-bar',
+    'expo-sqlite',
+    [
+      'expo-dev-client',
+      {
+        launchMode: 'most-recent',
+        defaultLaunchUrl: 'http://localhost:8081',
+        android: {
+          defaultLaunchUrl: 'http://10.0.0.2/8081',
+        },
+      },
+    ],
+  ],
 });
