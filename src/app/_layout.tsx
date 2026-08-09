@@ -1,5 +1,6 @@
 import { StatusBar } from '@components';
 import { ThemeProvider } from '@shopify/restyle';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -32,17 +33,32 @@ export default function Layout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider theme={colorTheme === 'dark' ? dark : light}>
-        <StatusBar
-          backgroundColor="background"
-          style={colorTheme === 'light' ? 'dark' : 'light'}
-        />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="import" options={{ presentation: 'formSheet' }} />
-          <Stack.Screen name="[issueId]" />
-        </Stack>
-      </ThemeProvider>
+      <QueryClientProvider
+        client={
+          new QueryClient({
+            defaultOptions: {
+              queries: {
+                staleTime: Number.POSITIVE_INFINITY,
+              },
+            },
+          })
+        }
+      >
+        <ThemeProvider theme={colorTheme === 'dark' ? dark : light}>
+          <StatusBar
+            backgroundColor="background"
+            style={colorTheme === 'light' ? 'dark' : 'light'}
+          />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="import"
+              options={{ presentation: 'formSheet' }}
+            />
+            <Stack.Screen name="[issueId]" />
+          </Stack>
+        </ThemeProvider>
+      </QueryClientProvider>
     </GestureHandlerRootView>
   );
 }

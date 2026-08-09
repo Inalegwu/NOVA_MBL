@@ -223,7 +223,7 @@ export default function Page() {
                   <Box
                     backgroundColor="accent"
                     height={StyleSheet.hairlineWidth + 2}
-                    width={`${item.progress}%`}
+                    width={`${item.progress * 100}%`}
                   />
                 </Box>
               </Box>
