@@ -3,6 +3,7 @@ import { ThemeProvider } from '@shopify/restyle';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import db from '@/lib/db';
 import { useAppState } from '@/lib/state';
 import { dark, light } from '@/lib/theme';
@@ -30,15 +31,18 @@ export default function Layout() {
   }
 
   return (
-    <ThemeProvider theme={colorTheme === 'dark' ? dark : light}>
-      <StatusBar
-        backgroundColor="background"
-        style={colorTheme === 'light' ? 'dark' : 'light'}
-      />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="import" options={{ presentation: 'formSheet' }} />
-      </Stack>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider theme={colorTheme === 'dark' ? dark : light}>
+        <StatusBar
+          backgroundColor="background"
+          style={colorTheme === 'light' ? 'dark' : 'light'}
+        />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="import" options={{ presentation: 'formSheet' }} />
+          <Stack.Screen name="[issueId]" />
+        </Stack>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

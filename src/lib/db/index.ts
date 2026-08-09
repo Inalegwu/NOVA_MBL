@@ -7,4 +7,17 @@ const db = pipe(SQLite.openDatabaseSync('nova.db'), (db) =>
   drizzle(db, { schema }),
 );
 
+export async function upsertProgress(
+  issueId: string,
+  page: number,
+): Promise<void> {
+  await db
+    .insert(schema.readingProgress)
+    .values({ issueId, currentPage: page, updatedAt: Date.now() })
+    .onConflictDoUpdate({
+      target: schema.readingProgress.issueId,
+      set: { currentPage: page, updatedAt: Date.now() },
+    });
+}
+
 export default db;

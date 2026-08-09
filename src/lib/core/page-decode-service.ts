@@ -26,7 +26,7 @@ type PageDecodeServiceShape = {
   ) => Effect.Effect<void>;
 };
 
-class PageDecodeService extends Context.Tag('PageDecodeService')<
+export class PageDecodeService extends Context.Tag('PageDecodeService')<
   PageDecodeService,
   PageDecodeServiceShape
 >() {}
