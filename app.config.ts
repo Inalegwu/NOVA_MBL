@@ -5,7 +5,7 @@ import pkg from './package.json';
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: pkg.name,
-  slug: 'nova',
+  slug: 'novambl',
   version: pkg.version,
   scheme: `com.${pkg.name.toLowerCase()}`,
   userInterfaceStyle: 'light',
@@ -20,9 +20,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
+    package: 'com.disgruntleddevs.novambl',
   },
   extra: {
     ...ClientEnv,
+    eas: {
+      projectId: '3876e361-931f-4d89-bbc4-50d83b247830',
+    },
   },
   experiments: {
     typedRoutes: true,

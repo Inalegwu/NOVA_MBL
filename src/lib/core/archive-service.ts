@@ -35,6 +35,8 @@ export const ArchiveServiceLive = Layer.succeed(ArchiveService, {
 
       const alreadyExtracted = yield* Effect.sync(() => dest.exists);
 
+      yield* Effect.logInfo({ alreadyExtracted });
+
       if (!alreadyExtracted) {
         yield* Effect.tryPromise({
           try: async () => {
@@ -77,6 +79,8 @@ function unzipWithProgress(
           if (filePath === target) onProgress(progress);
         })
       : undefined;
+
+    console.log(sub);
 
     unzip(source, target)
       .then((path) => {

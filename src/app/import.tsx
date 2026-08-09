@@ -1,5 +1,5 @@
-import { Box, Card, Text } from '@atoms';
-import { Container, TouchableOpacity } from '@components';
+import { Box, Card, Icon, Text } from '@atoms';
+import { TouchableOpacity } from '@components';
 import { Effect } from 'effect';
 import * as DocumentPicker from 'expo-document-picker';
 import { useCallback, useState } from 'react';
@@ -41,6 +41,14 @@ export default function Page() {
     setItems(staged);
   }, []);
 
+  const toggleSelected = useCallback((uri: string) => {
+    setItems((prev) =>
+      prev.map((it) =>
+        it.uri === uri ? { ...it, selected: !it.selected } : it,
+      ),
+    );
+  }, []);
+
   const updateItem = useCallback((uri: string, patch: Partial<StagedItem>) => {
     setItems((prev) =>
       prev.map((it) => (it.uri === uri ? { ...it, ...patch } : it)),
@@ -62,8 +70,9 @@ export default function Page() {
               updateItem(item.uri, { progress: fraction }),
             ),
           ),
-          Effect.catchAll(() =>
+          Effect.catchAll((error) =>
             Effect.sync(() => {
+              console.log({ error: error.message, cause: error.cause });
               updateItem(item.uri, { status: 'error' });
               return null;
             }),
@@ -91,7 +100,7 @@ export default function Page() {
   const totalBytes = selectedItems.reduce((sum, it) => sum + it.sizeBytes, 0);
 
   return (
-    <Container>
+    <Box backgroundColor="background" flex={1}>
       <Card
         paddingHorizontal="s"
         width="100%"
@@ -148,7 +157,7 @@ export default function Page() {
           activeOpacity={0.7}
           onPress={pickFiles}
         >
-          <Text variant="label">Change</Text>
+          <Text variant="label">{items.length > 0 ? 'Change' : 'Select'}</Text>
         </TouchableOpacity>
       </Card>
       <FlatList
@@ -156,52 +165,71 @@ export default function Page() {
         keyExtractor={(item) => item.uri}
         renderItem={({ item }) => (
           <Card
+            width="100%"
             variant="hairlineBottom"
             flexDirection="row"
             alignItems="center"
             justifyContent="space-between"
             paddingHorizontal="m"
             paddingVertical="m"
-            gap="3"
           >
+            <TouchableOpacity
+              backgroundColor={item.selected ? 'transparent' : 'accent'}
+              width={20}
+              hitSlop={20}
+              alignItems="center"
+              justifyContent="center"
+              height={20}
+              onPress={() => toggleSelected(item.uri)}
+            >
+              {item.selected ? <Icon name="TickSquare" /> : null}
+            </TouchableOpacity>
             <Box
-              backgroundColor="accent"
-              width={10}
-              height={10}
-              borderRadius="full"
-            />
-            <Box
-              flex={1}
+              width="80%"
               gap="2"
               alignItems="flex-start"
               justifyContent="center"
             >
+              <Box>
+                <Text
+                  color="text"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  fontSize={14}
+                  variant="titleMd"
+                >
+                  {item.series} - {item.title}
+                </Text>
+                <Text variant="label" numberOfLines={1}>
+                  {item.filename}
+                </Text>
+              </Box>
               <Box
-                width="100%"
                 flexDirection="row"
                 alignItems="center"
-                justifyContent="space-between"
+                justifyContent="flex-start"
+                gap="1"
               >
-                <Box gap="1" flexDirection="column" alignItems="flex-start">
-                  <Text variant="body">{item.title}</Text>
-                  <Text variant="label" numberOfLines={1} ellipsizeMode="tail">
-                    {item.filename}
+                <Card
+                  paddingHorizontal="s"
+                  paddingVertical="1"
+                  variant="hairlineAll"
+                >
+                  <Text variant="label" fontSize={8}>
+                    {item.status}
                   </Text>
-                </Box>
-                <Text variant="label">{formatBytes(item.sizeBytes)}</Text>
-              </Box>
-              <Box width="100%" flexDirection="row" alignItems="center" gap="1">
-                <Card variant="hairlineAll">
-                  <Text variant="label">{item.status}</Text>
                 </Card>
-                <Box gap="1">
+                <Box width="70%" backgroundColor="textFaint">
                   <Box
-                    width={item.progress}
                     backgroundColor="accent"
-                    height={StyleSheet.hairlineWidth}
+                    height={StyleSheet.hairlineWidth + 2}
+                    width={`${item.progress}%`}
                   />
                 </Box>
               </Box>
+            </Box>
+            <Box alignItems="flex-end" justifyContent="center">
+              <Text variant="label">{formatBytes(item.sizeBytes)}</Text>
             </Box>
           </Card>
         )}
@@ -221,15 +249,15 @@ export default function Page() {
         </Box>
         <TouchableOpacity
           paddingHorizontal="l"
-          paddingVertical="m"
+          paddingVertical="2"
           backgroundColor="accent"
           onPress={importSelected}
         >
-          <Text fontSize={13} color="background" variant="label">
+          <Text fontSize={12} color="background" variant="label">
             import
           </Text>
         </TouchableOpacity>
       </Card>
-    </Container>
+    </Box>
   );
 }
