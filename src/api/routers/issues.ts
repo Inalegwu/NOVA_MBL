@@ -25,6 +25,9 @@ export const issuesRouter = router('issues', {
         .select({
           filePath: issues.filePath,
           currentPage: readingProgress.currentPage,
+          series: issues.series,
+          title: issues.title,
+          pageCount: issues.pageCount,
         })
         .from(issues)
         .leftJoin(readingProgress, eq(readingProgress.issueId, issues.id))
@@ -34,11 +37,13 @@ export const issuesRouter = router('issues', {
 
       if (!row) throw new Error(`No issue found for ${variables.issueId}`);
 
+      console.log({ row });
+
       const manifest = await runtime.runPromise(
         ArchiveService.pipe(Effect.flatMap((svc) => svc.index(row.filePath))),
       );
 
-      return { manifest, startPage: row.currentPage ?? 0 };
+      return { manifest, startPage: row.currentPage ?? 0, issue: row };
     },
   }),
 });

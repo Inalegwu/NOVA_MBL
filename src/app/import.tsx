@@ -68,7 +68,6 @@ export default function Page() {
     // sequential on purpose — extraction is disk/CPU heavy, running several
     // native unzips concurrently just contends for the same resources
     for (const item of toImport) {
-      console.log(item);
       updateItem(item.uri, { status: 'extracting', progress: 0 });
 
       const localPath = await ensureLocalFile(item.uri, item.filename).catch(
@@ -89,7 +88,6 @@ export default function Page() {
               updateItem(item.uri, { progress: fraction }),
             ),
           ),
-          Effect.tap(Effect.logInfo),
           Effect.catchAll((error) =>
             Effect.sync(() => {
               console.log({ error: error.message, cause: error.cause });
@@ -104,7 +102,7 @@ export default function Page() {
 
       await db.insert(issues).values({
         id: manifest.archiveId,
-        filePath: item.uri,
+        filePath: localPath,
         series: item.series,
         title: item.title,
         pageCount: manifest.pageCount,
@@ -177,7 +175,7 @@ export default function Page() {
           alignItems="center"
           justifyContent="center"
           paddingHorizontal="l"
-          paddingVertical="s"
+          paddingVertical="xs"
           activeOpacity={0.7}
           onPress={pickFiles}
         >

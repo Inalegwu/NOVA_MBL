@@ -1,5 +1,5 @@
-import { Box, Text } from '@atoms';
-import { Container } from '@components';
+import { Box, Card, Icon, Text } from '@atoms';
+import { Container, TouchableOpacity } from '@components';
 import {
   Canvas,
   fitbox,
@@ -10,6 +10,7 @@ import {
 } from '@shopify/react-native-skia';
 import { Effect } from 'effect';
 import { router, useLocalSearchParams } from 'expo-router';
+import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -80,6 +81,7 @@ function useReaderPage(manifest: ArchiveManifest, initialPage: number) {
 
 export default function Page() {
   const { issueId } = useLocalSearchParams<{ issueId: string }>();
+  const [page, setPage] = useState(0);
 
   const { data, isLoading } = app.issues.getIssueById.useQuery({
     variables: {
@@ -104,11 +106,76 @@ export default function Page() {
   }
 
   return (
-    <ReaderView
-      manifest={data?.manifest}
-      initialPage={data?.startPage}
-      onClose={() => router.back()}
-    />
+    <>
+      <Box
+        position="absolute"
+        flex={1}
+        paddingVertical="xxxl"
+        paddingHorizontal="s"
+        backgroundColor="transparent"
+        zIndex="overlay"
+        top={0}
+        left={0}
+        width="100%"
+        height="100%"
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <Box
+          width="100%"
+          flexDirection="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Card variant="hairlineAll" p="2">
+            <TouchableOpacity onPress={() => router.back()} hitSlop={20}>
+              <Icon name="ArrowLeft2" size="m" />
+            </TouchableOpacity>
+          </Card>
+          <Box alignItems="flex-end" justifyContent="center">
+            <Text variant="label" color="accent">
+              {data.issue.series}
+            </Text>
+            <Text variant="titleMd" color="textMuted" fontSize={14}>
+              {data.issue.title}
+            </Text>
+          </Box>
+        </Box>
+        <Box width="100%" gap="6">
+          <Box
+            width="100%"
+            flexDirection="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Box
+              flexDirection="row"
+              alignItems="center"
+              justifyContent="center"
+              gap="0.5"
+            >
+              <Text fontSize={10} variant="label" color="accent">
+                {page + 1}
+              </Text>
+              <Text variant="label" fontSize={10}>
+                /
+              </Text>
+              <Text variant="label" fontSize={10}>
+                {data.issue.pageCount ?? 0}
+              </Text>
+            </Box>
+            <Text variant="label">62%</Text>
+          </Box>
+          <Text variant="label">ticker</Text>
+        </Box>
+      </Box>
+      <ReaderView
+        manifest={data?.manifest}
+        initialPage={data?.startPage}
+        onClose={() => router.back()}
+        setPage={setPage}
+      />
+    </>
   );
 }
 
@@ -116,9 +183,14 @@ type ReaderViewProps = {
   manifest: ArchiveManifest;
   initialPage: number;
   onClose: () => void;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
 };
 
-function ReaderView({ manifest, initialPage }: ReaderViewProps) {
+function ReaderView({
+  manifest,
+  initialPage,
+  setPage: updatePage,
+}: ReaderViewProps) {
   const { width: cw, height: ch } = useWindowDimensions();
   const { page, image, setPage } = useReaderPage(manifest, initialPage);
 
@@ -129,6 +201,10 @@ function ReaderView({ manifest, initialPage }: ReaderViewProps) {
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
   const pageDragX = useSharedValue(0);
+
+  useEffect(() => {
+    updatePage(page);
+  }, [page, updatePage]);
 
   const resetZoom = useCallback(() => {
     scale.value = withTiming(1);
@@ -208,7 +284,7 @@ function ReaderView({ manifest, initialPage }: ReaderViewProps) {
   }, [image, cw, ch]);
 
   return (
-    <Box>
+    <Box backgroundColor="background">
       <GestureDetector gesture={composedGesture}>
         <Canvas style={{ width: cw, height: ch }}>
           {image && fitTransform && (

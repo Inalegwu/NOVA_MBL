@@ -6,13 +6,17 @@ import { app } from 'src/api/app';
 import { formatBytes } from '@/lib/utils';
 
 export default function Page() {
+  // const qc = useQueryClient();
   const { data, isLoading } = app.issues.getIssues.useQuery();
 
   // useEffect(() => {
   //   (async () => {
   //     await db.delete(issues);
+  //     qc.invalidateQueries({
+  //       queryKey: ['issues'],
+  //     });
   //   })();
-  // }, []);
+  // }, [qc]);
 
   if (isLoading) {
     return (
@@ -49,7 +53,7 @@ export default function Page() {
           >
             <Box width={10} height={10} backgroundColor="accent" />
             <Text variant="label" color="accent">
-              Local Library
+              lcl.lib
             </Text>
           </Box>
         </Box>
@@ -59,7 +63,7 @@ export default function Page() {
           alignItems="flex-end"
           justifyContent="space-between"
         >
-          <Text variant="titleLg">Issues</Text>
+          <Text variant="titleLg">Library</Text>
           <Text variant="label">240mb/1.8gb</Text>
         </Box>
       </Card>
@@ -76,7 +80,7 @@ const IssueRow = ({
   issue,
 }: {
   issue: Issue & {
-    progress: ReadingProgress;
+    progress: ReadingProgress | null;
   };
 }) => {
   return (
@@ -106,22 +110,24 @@ const IssueRow = ({
           flex={1}
           paddingHorizontal="s"
           height="100%"
-          gap="1"
+          gap="2"
         >
-          <Text variant="label">{issue.series}</Text>
-          <Text
-            variant="titleMd"
-            fontSize={15}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            Issue {issue.title}
-          </Text>
+          <Box alignItems="flex-start" justifyContent="center">
+            <Text variant="label">{issue.series}</Text>
+            <Text
+              variant="titleMd"
+              fontSize={15}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              Issue {issue.title}
+            </Text>
+          </Box>
           <Box backgroundColor="accentMuted" borderRadius="full" width="100%">
             <Box
               height={StyleSheet.hairlineWidth + 2}
               borderRadius="full"
-              width={`${(issue.progress?.currentPage / issue.pageCount) * 100}%`}
+              width={`${(issue.progress?.currentPage! / issue.pageCount) * 100}%`}
               backgroundColor="accent"
             />
           </Box>

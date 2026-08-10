@@ -5,6 +5,18 @@ import { subscribe, unzip } from 'react-native-zip-archive';
 import { naturalCompare, toFsPath } from '../utils';
 import { type ArchiveManifest, ArchiveReadError, IMAGE_EXT } from './types';
 
+function listFilesRecursive(dir: FS.Directory): FS.File[] {
+  const files: FS.File[] = [];
+  for (const entry of dir.list()) {
+    if (entry instanceof FS.File) {
+      files.push(entry);
+    } else if (entry instanceof FS.Directory) {
+      files.push(...listFilesRecursive(entry));
+    }
+  }
+  return files;
+}
+
 type ArchiveServiceShape = Readonly<{
   index: (
     filePath: string,
@@ -36,7 +48,10 @@ export const ArchiveServiceLive = Layer.succeed(ArchiveService, {
 
       const alreadyExtracted = yield* Effect.sync(() => dest.exists);
 
-      yield* Effect.logInfo({ alreadyExtracted, sourcePath });
+      yield* Effect.logInfo({
+        filePath,
+        alreadyExtracted,
+      });
 
       if (!alreadyExtracted) {
         yield* Effect.tryPromise({
@@ -50,12 +65,8 @@ export const ArchiveServiceLive = Layer.succeed(ArchiveService, {
 
       const pageFiles = yield* Effect.try({
         try: () =>
-          dest
-            .list()
-            .filter(
-              (entry): entry is FS.File =>
-                entry instanceof File && IMAGE_EXT.test(entry.name),
-            )
+          listFilesRecursive(dest)
+            .filter((f) => IMAGE_EXT.test(f.name))
             .map((f) => f.uri)
             .sort(naturalCompare),
         catch: (cause) => new ArchiveReadError({ cause }),
@@ -63,7 +74,7 @@ export const ArchiveServiceLive = Layer.succeed(ArchiveService, {
 
       return {
         archiveId,
-        pageCount: 0,
+        pageCount: pageFiles.length,
         pageFiles,
       } satisfies ArchiveManifest;
     }),
@@ -90,6 +101,7 @@ function unzipWithProgress(
         resolve(path);
       })
       .catch((err) => {
+        console.error(err);
         sub?.remove();
         reject(err);
       });

@@ -17,7 +17,7 @@ const ACCENTS: ReadonlyArray<
 export const useAppState = create<GlobalState>()(
   persist(
     (set) => ({
-      theme: 'light',
+      theme: 'dark',
       sourceFolder: null,
       accent: null,
       toggleTheme: () =>

@@ -90,7 +90,10 @@ export async function ensureLocalFile(
 
   const dest = new File(Paths.cache, 'comic-imports', filename);
 
-  if (dest.exists) return dest.uri;
+  if (dest.exists) {
+    console.log(dest.uri);
+    return dest.uri;
+  }
 
   if (!dest.parentDirectory.exists) {
     dest.parentDirectory.create({ intermediates: true });
