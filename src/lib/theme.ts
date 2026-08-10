@@ -34,6 +34,8 @@ const palette = {
   accentMutedDark: `${ACCENT_DARK}1A`, // 10% alpha
   accentMutedLight: `${ACCENT_LIGHT}1A`, // 10% alpha
 
+  overlayBackdrop: `#0000001A`,
+
   transparent: 'transparent',
 };
 
@@ -51,6 +53,7 @@ const light = createTheme({
     navigation: palette.textPrimaryLight,
     textAlt: palette.textPrimaryDark,
     transparent: palette.transparent,
+    overlayBackdrop: palette.overlayBackdrop,
   },
   spacing: {
     '-1': -1,

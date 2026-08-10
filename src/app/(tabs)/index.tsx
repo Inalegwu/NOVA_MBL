@@ -10,6 +10,9 @@ export default function Page() {
   const { data, isLoading } = app.issues.getIssues.useQuery();
 
   // useEffect(() => {
+  //   qc.invalidateQueries({
+  //     queryKey: ['issues'],
+  //   });
   //   (async () => {
   //     await db.delete(issues);
   //     qc.invalidateQueries({

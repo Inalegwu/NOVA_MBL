@@ -100,6 +100,8 @@ export default function Page() {
 
       if (!manifest) continue;
 
+      if (manifest.pageCount === 0) continue;
+
       await db.insert(issues).values({
         id: manifest.archiveId,
         filePath: localPath,

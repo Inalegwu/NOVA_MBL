@@ -41,6 +41,22 @@ export default function Page() {
           <Text variant="titleLg">Settings</Text>
         </Box>
       </Card>
+      <Card
+        width="100%"
+        variant="hairlineBottom"
+        flexDirection="row"
+        alignItems="center"
+        justifyContent="space-between"
+        paddingHorizontal="m"
+        paddingVertical="m"
+      >
+        <Box alignItems="flex-start" justifyContent="center">
+          <Text fontSize={14} variant="titleMd">
+            Source Folder
+          </Text>
+          <Text variant="label">where to look for new issues</Text>
+        </Box>
+      </Card>
     </Container>
   );
 }
