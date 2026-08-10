@@ -164,7 +164,9 @@ export default function Page() {
                 {data.issue.pageCount ?? 0}
               </Text>
             </Box>
-            <Text variant="label">62%</Text>
+            <Text variant="label">
+              {Math.round((page / data.issue.pageCount) * 100)}%
+            </Text>
           </Box>
           <Text variant="label">ticker</Text>
         </Box>
