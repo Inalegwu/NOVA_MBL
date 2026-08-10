@@ -29,6 +29,8 @@ export default function Page() {
     );
   }
 
+  const totalSize = data?.reduce((acc, curr) => acc + curr.sizeBytes, 0) ?? 0;
+
   return (
     <Container>
       {/* overview */}
@@ -67,7 +69,7 @@ export default function Page() {
           justifyContent="space-between"
         >
           <Text variant="titleLg">Library</Text>
-          <Text variant="label">240mb/1.8gb</Text>
+          <Text variant="label">{formatBytes(totalSize)}</Text>
         </Box>
       </Card>
       <FlatList
