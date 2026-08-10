@@ -1,5 +1,6 @@
 import { Box, Card, Icon, Text } from '@atoms';
 import { TouchableOpacity } from '@components';
+import { useQueryClient } from '@tanstack/react-query';
 import { Effect } from 'effect';
 import * as DocumentPicker from 'expo-document-picker';
 import { useCallback, useState } from 'react';
@@ -8,9 +9,15 @@ import { ArchiveService } from '@/lib/core/archive-service';
 import runtime from '@/lib/core/index';
 import db from '@/lib/db';
 import { issues } from '@/lib/db/schema';
-import { formatBytes, parseFilename, SUPPORTED_EXT } from '@/lib/utils';
+import {
+  ensureLocalFile,
+  formatBytes,
+  parseFilename,
+  SUPPORTED_EXT,
+} from '@/lib/utils';
 
 export default function Page() {
+  const qc = useQueryClient();
   const [items, setItems] = useState<ReadonlyArray<StagedItem>>([]);
 
   const pickFiles = useCallback(async () => {
@@ -61,15 +68,28 @@ export default function Page() {
     // sequential on purpose — extraction is disk/CPU heavy, running several
     // native unzips concurrently just contends for the same resources
     for (const item of toImport) {
+      console.log(item);
       updateItem(item.uri, { status: 'extracting', progress: 0 });
+
+      const localPath = await ensureLocalFile(item.uri, item.filename).catch(
+        () => null,
+      );
+
+      console.log({ localPath });
+
+      if (!localPath) {
+        updateItem(item.uri, { status: 'error' });
+        continue;
+      }
 
       const manifest = await runtime.runPromise(
         ArchiveService.pipe(
           Effect.flatMap((svc) =>
-            svc.index(item.uri, (fraction) =>
+            svc.index(localPath, (fraction) =>
               updateItem(item.uri, { progress: fraction }),
             ),
           ),
+          Effect.tap(Effect.logInfo),
           Effect.catchAll((error) =>
             Effect.sync(() => {
               console.log({ error: error.message, cause: error.cause });
@@ -94,7 +114,11 @@ export default function Page() {
 
       updateItem(item.uri, { status: 'done', progress: 1 });
     }
-  }, [items, updateItem]);
+
+    qc.invalidateQueries({
+      queryKey: ['issues'],
+    });
+  }, [items, updateItem, qc]);
 
   const selectedItems = items.filter((it) => it.selected);
   const totalBytes = selectedItems.reduce((sum, it) => sum + it.sizeBytes, 0);

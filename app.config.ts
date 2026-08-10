@@ -14,6 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: false,
+    icon: './assets/icon.png',
   },
   android: {
     adaptiveIcon: {

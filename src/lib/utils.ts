@@ -1,4 +1,5 @@
 import * as String from 'effect/String';
+import { File, Paths } from 'expo-file-system';
 import { cache } from 'react';
 import { PixelRatio, Platform } from 'react-native';
 import { ANDROID_SCALE_LIMIT, SCALE } from './constants';
@@ -47,7 +48,7 @@ export function parseFilename(filename: string): {
   if (!match) return { series: titleCase(base), title: base };
 
   const [, rawSeries, num, rest] = match;
-  const series = titleCase(rawSeries ?? '');
+  const series = titleCase(rawSeries!);
   const title = rest ? `${num} — ${titleCase(rest)}` : num;
   return { series, title: title ?? '' };
 }
@@ -79,4 +80,27 @@ export function statusLabel(status: ItemStatus): string {
     case 'error':
       return 'Error';
   }
+}
+
+export async function ensureLocalFile(
+  sourceUri: string,
+  filename: string,
+): Promise<string> {
+  if (sourceUri.startsWith('file://')) return sourceUri;
+
+  const dest = new File(Paths.cache, 'comic-imports', filename);
+
+  if (dest.exists) return dest.uri;
+
+  if (!dest.parentDirectory.exists) {
+    dest.parentDirectory.create({ intermediates: true });
+  }
+
+  new File(sourceUri).copy(dest);
+  console.log({ dest });
+  return dest.uri;
+}
+
+export function toFsPath(uri: string): string {
+  return decodeURIComponent(uri.replace(/^file:\/\//, ''));
 }

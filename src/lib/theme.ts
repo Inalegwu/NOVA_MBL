@@ -1,7 +1,7 @@
 import { createTheme } from '@shopify/restyle';
 import { StyleSheet } from 'react-native';
 
-const hairlineWidth = StyleSheet.hairlineWidth + 1;
+const hairlineWidth = StyleSheet.hairlineWidth;
 
 const ACCENT_DARK = '#ff4d1c'; // recording-light red
 const ACCENT_LIGHT = '#d9420f'; // deepened for AA contrast on white

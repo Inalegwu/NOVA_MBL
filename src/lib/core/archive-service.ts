@@ -2,7 +2,7 @@ import { Context, Effect, Layer } from 'effect';
 import * as Crypto from 'expo-crypto';
 import * as FS from 'expo-file-system';
 import { subscribe, unzip } from 'react-native-zip-archive';
-import { naturalCompare } from '../utils';
+import { naturalCompare, toFsPath } from '../utils';
 import { type ArchiveManifest, ArchiveReadError, IMAGE_EXT } from './types';
 
 type ArchiveServiceShape = Readonly<{
@@ -20,8 +20,9 @@ export class ArchiveService extends Context.Tag('ArchiveService')<
 const extractRoot = new FS.Directory(FS.Paths.cache, 'nova_cache');
 
 export const ArchiveServiceLive = Layer.succeed(ArchiveService, {
-  index: (filePath) =>
+  index: (filePath, onProgress) =>
     Effect.gen(function* () {
+      const sourcePath = toFsPath(filePath);
       const archiveId = yield* Effect.tryPromise({
         try: async () =>
           await Crypto.digestStringAsync(
@@ -35,13 +36,13 @@ export const ArchiveServiceLive = Layer.succeed(ArchiveService, {
 
       const alreadyExtracted = yield* Effect.sync(() => dest.exists);
 
-      yield* Effect.logInfo({ alreadyExtracted });
+      yield* Effect.logInfo({ alreadyExtracted, sourcePath });
 
       if (!alreadyExtracted) {
         yield* Effect.tryPromise({
           try: async () => {
             dest.create({ intermediates: true });
-            await unzipWithProgress(filePath, dest.uri);
+            await unzipWithProgress(sourcePath, dest.uri, onProgress);
           },
           catch: (cause) => new ArchiveReadError({ cause }),
         });
@@ -73,6 +74,9 @@ function unzipWithProgress(
   target: string,
   onProgress?: (fraction: number) => void,
 ): Promise<string> {
+  const sourcePath = toFsPath(source);
+  const targetPath = toFsPath(target);
+
   return new Promise((resolve, reject) => {
     const sub = onProgress
       ? subscribe(({ progress, filePath }) => {
@@ -80,9 +84,7 @@ function unzipWithProgress(
         })
       : undefined;
 
-    console.log(sub);
-
-    unzip(source, target)
+    unzip(sourcePath, targetPath)
       .then((path) => {
         sub?.remove();
         resolve(path);

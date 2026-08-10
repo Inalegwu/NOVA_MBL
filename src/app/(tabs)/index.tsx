@@ -1,20 +1,26 @@
 import { Box, Card, Text } from '@atoms';
 import { Container, TouchableOpacity } from '@components';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { FlatList } from 'react-native';
-import db from '@/lib/db';
+import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
+import { app } from 'src/api/app';
 import { formatBytes } from '@/lib/utils';
 
 export default function Page() {
-  const [issues, setIssues] = useState<ReadonlyArray<Issue>>([]);
+  const { data, isLoading } = app.issues.getIssues.useQuery();
 
-  useEffect(() => {
-    (async () => {
-      const issues = await db.query.issues.findMany({});
-      setIssues(issues);
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     await db.delete(issues);
+  //   })();
+  // }, []);
+
+  if (isLoading) {
+    return (
+      <Container>
+        <ActivityIndicator size="large" />
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -46,17 +52,6 @@ export default function Page() {
               Local Library
             </Text>
           </Box>
-          <TouchableOpacity
-            hitSlop={20}
-            paddingHorizontal="m"
-            paddingVertical="1"
-            backgroundColor="accent"
-            onPress={() => router.navigate('/import')}
-          >
-            <Text variant="label" color="background">
-              import
-            </Text>
-          </TouchableOpacity>
         </Box>
         <Box
           width="100%"
@@ -69,7 +64,7 @@ export default function Page() {
         </Box>
       </Card>
       <FlatList
-        data={issues}
+        data={data}
         keyExtractor={(item) => item.id}
         renderItem={({ item: issue }) => <IssueRow issue={issue} />}
       />
@@ -77,47 +72,70 @@ export default function Page() {
   );
 }
 
-const IssueRow = ({ issue }: { issue: Issue }) => {
+const IssueRow = ({
+  issue,
+}: {
+  issue: Issue & {
+    progress: ReadingProgress;
+  };
+}) => {
   return (
-    <Card
-      width="100%"
-      variant="hairlineBottom"
-      flexDirection="row"
-      alignItems="center"
-      justifyContent="space-between"
-      paddingHorizontal="m"
-      paddingVertical="m"
-    >
-      <Box
-        width={60}
-        height={70}
-        borderRadius="sm"
-        backgroundColor="textFaint"
+    <Card width="100%" variant="hairlineBottom">
+      <TouchableOpacity
+        flexDirection="row"
         alignItems="center"
-        justifyContent="center"
-        gap="3"
+        justifyContent="space-between"
+        paddingHorizontal="m"
+        paddingVertical="m"
+        onPress={() => router.navigate(`/issue/${issue.id}`)}
       >
-        <Text variant="label">AB</Text>
-      </Box>
-      <Box
-        flexDirection="column"
-        alignItems="flex-start"
-        justifyContent="center"
-        flex={1}
-        paddingHorizontal="s"
-        height="100%"
-      >
-        <Text variant="monoSm">{issue.title}</Text>
-      </Box>
-      <Box
-        flexDirection="column"
-        alignItems="flex-end"
-        justifyContent="center"
-        gap="0.5"
-      >
-        <Text variant="monoSm">{issue.pageCount}</Text>
-        <Text variant="label">{formatBytes(issue.sizeBytes)}</Text>
-      </Box>
+        <Box
+          width={60}
+          height={70}
+          borderRadius="sm"
+          backgroundColor="textFaint"
+          alignItems="center"
+          justifyContent="center"
+          gap="3"
+        >
+          <Text variant="label">AB</Text>
+        </Box>
+        <Box
+          alignItems="flex-start"
+          justifyContent="center"
+          flex={1}
+          paddingHorizontal="s"
+          height="100%"
+          gap="1"
+        >
+          <Text variant="label">{issue.series}</Text>
+          <Text
+            variant="titleMd"
+            fontSize={15}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            Issue {issue.title}
+          </Text>
+          <Box backgroundColor="accentMuted" borderRadius="full" width="100%">
+            <Box
+              height={StyleSheet.hairlineWidth + 2}
+              borderRadius="full"
+              width={`${(issue.progress?.currentPage / issue.pageCount) * 100}%`}
+              backgroundColor="accent"
+            />
+          </Box>
+        </Box>
+        <Box
+          flexDirection="column"
+          alignItems="flex-end"
+          justifyContent="center"
+          gap="0.5"
+        >
+          <Text variant="monoSm">{issue.pageCount}</Text>
+          <Text variant="label">{formatBytes(issue.sizeBytes)}</Text>
+        </Box>
+      </TouchableOpacity>
     </Card>
   );
 };

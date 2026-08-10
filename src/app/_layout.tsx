@@ -55,7 +55,7 @@ export default function Layout() {
               name="import"
               options={{ presentation: 'formSheet' }}
             />
-            <Stack.Screen name="[issueId]" />
+            <Stack.Screen name="issue/[issueId]/index" />
           </Stack>
         </ThemeProvider>
       </QueryClientProvider>

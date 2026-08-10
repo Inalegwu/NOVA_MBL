@@ -47,7 +47,9 @@ export const PageCacheServiceLive = Layer.succeed(PageCacheService, {
   put: (archiveId, page, tier, bytes) =>
     Effect.sync(() => {
       const f = tierFile(archiveId, page, tier);
-      f.parentDirectory.create({ intermediates: true });
+      if (!f.parentDirectory.exists) {
+        f.parentDirectory.create({ intermediates: true });
+      }
       f.write(bytes);
     }),
   evictAround: (archiveId, centerPage, keepRadius) =>

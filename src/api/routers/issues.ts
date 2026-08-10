@@ -7,6 +7,18 @@ import db from '@/lib/db';
 import { issues, readingProgress } from '@/lib/db/schema';
 
 export const issuesRouter = router('issues', {
+  getIssues: router.query({
+    fetcher: async () =>
+      (
+        await db
+          .select()
+          .from(issues)
+          .leftJoin(readingProgress, eq(readingProgress.issueId, issues.id))
+      ).flatMap((item) => ({
+        ...item.issues,
+        progress: item.reading_progress,
+      })),
+  }),
   getIssueById: router.query({
     fetcher: async (variables: { issueId: string }) => {
       const rows = await db
